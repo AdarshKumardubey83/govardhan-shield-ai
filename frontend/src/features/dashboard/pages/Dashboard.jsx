@@ -15,18 +15,34 @@ export const Dashboard = () => {
   const [showPlanModal, setShowPlanModal] = useState(false);
 
   useEffect(() => {
+    if (!navigator.geolocation) {
+      setLocation({ lat: 28.6, lon: 77.2 });
+      return;
+    }
+
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        const lat = position.coords.latitude;
-        const lon = position.coords.longitude;
-        setLocation({ lat, lon });
-        console.log("Latitude:", lat);
-        console.log("Longitude:", lon);
+        setLocation({
+          lat: position.coords.latitude,
+          lon: position.coords.longitude,
+        });
       },
-      (error) => {
-        console.log("Location error:", error);
+      () => {
+        // fallback if denied
+        setLocation({ lat: 28.6, lon: 77.2 });
       }
     );
+
+    // EXTRA SAFETY (never stuck)
+    setTimeout(() => {
+      setLocation((prev) => {
+        if (!prev?.lat || !prev?.lon) {
+          return { lat: 28.6, lon: 77.2 };
+        }
+        return prev;
+      });
+    }, 4000);
+
   }, []);
 
   if (isLoading) {
